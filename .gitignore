@@ -16,3 +16,6 @@ local.properties
 
 # Keep CLAUDE.md local only
 CLAUDE.md
+
+# Claude Code settings
+.claude/

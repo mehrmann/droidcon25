@@ -37,33 +37,19 @@ android {
     buildFeatures {
         compose = true
     }
-}
 
-val generateSources = tasks.register("generateSources") {
-    val outputDir = file("${layout.buildDirectory}/generated/codegen/src")
-    val outputFile = file("$outputDir/de/kodierer/droidcon25/generated/GeneratedStrings.kt")
-
-    outputs.dir(outputDir)
-
-    doLast {
-        outputDir.mkdirs()
-        outputFile.parentFile.mkdirs()
-        outputFile.writeText("""
-            package de.kodierer.droidcon25.generated
-
-            object GeneratedStrings {
-                const val APP_TITLE = "Hello World"
-            }
-        """.trimIndent())
-    }
-}
-
-android {
     sourceSets {
         getByName("main") {
-            java.srcDir("${layout.buildDirectory}/generated/codegen/src")
+            kotlin.srcDir("${layout.buildDirectory.get()}/generated/codegen/src")
         }
     }
+}
+
+val generateSources = createCodeGenerationTask()
+
+// Ensure generated sources are available before Kotlin compilation
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    dependsOn(generateSources)
 }
 
 tasks.named("preBuild") {

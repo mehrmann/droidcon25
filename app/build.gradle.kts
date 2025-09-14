@@ -39,6 +39,37 @@ android {
     }
 }
 
+val generateSources = tasks.register("generateSources") {
+    val outputDir = file("${layout.buildDirectory}/generated/codegen/src")
+    val outputFile = file("$outputDir/de/kodierer/droidcon25/generated/GeneratedStrings.kt")
+
+    outputs.dir(outputDir)
+
+    doLast {
+        outputDir.mkdirs()
+        outputFile.parentFile.mkdirs()
+        outputFile.writeText("""
+            package de.kodierer.droidcon25.generated
+
+            object GeneratedStrings {
+                const val APP_TITLE = "Hello World"
+            }
+        """.trimIndent())
+    }
+}
+
+android {
+    sourceSets {
+        getByName("main") {
+            java.srcDir("${layout.buildDirectory}/generated/codegen/src")
+        }
+    }
+}
+
+tasks.named("preBuild") {
+    dependsOn(generateSources)
+}
+
 dependencies {
 
     implementation(libs.androidx.core.ktx)

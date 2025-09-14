@@ -14,6 +14,9 @@
 .cxx
 local.properties
 
+# buildSrc build artifacts
+buildSrc/build/
+
 # Keep CLAUDE.md local only
 CLAUDE.md
 

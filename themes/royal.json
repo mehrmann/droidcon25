@@ -1,0 +1,24 @@
+{
+  "name": "Royal Purple",
+  "enumName": "ROYAL",
+  "colors": {
+    "primary": "#6650a4",
+    "primaryLight": "#7B6BB0",
+    "primaryDark": "#4A3B7A",
+    "secondary": "#625b71",
+    "secondaryLight": "#746B7E",
+    "secondaryDark": "#4A4458",
+    "tertiary": "#7D5260",
+    "onPrimary": "#FFFFFF",
+    "onSecondary": "#FFFFFF",
+    "onTertiary": "#FFFFFF",
+    "background": "#FFFBFE",
+    "surface": "#FFFBFE",
+    "onBackground": "#1C1B1F",
+    "onSurface": "#1C1B1F",
+    "primaryContainer": "#EADDFF",
+    "secondaryContainer": "#E8DEF8",
+    "onPrimaryContainer": "#21005D",
+    "onSecondaryContainer": "#1D192B"
+  }
+}

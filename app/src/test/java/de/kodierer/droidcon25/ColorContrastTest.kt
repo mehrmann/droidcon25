@@ -2,7 +2,8 @@ package de.kodierer.droidcon25
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import de.kodierer.droidcon25.ui.theme.*
+import de.kodierer.droidcon25.generated.AllThemes
+import de.kodierer.droidcon25.ui.theme.ThemeColorObject
 import org.junit.Test
 import org.junit.Assert.*
 import kotlin.math.pow
@@ -17,52 +18,26 @@ import kotlin.math.pow
 class ColorContrastTest {
 
     @Test
-    fun testRoyalThemeContrast() {
-        testThemeColors(
-            "Royal",
-            RoyalPrimary, RoyalPrimaryLight, RoyalPrimaryDark,
-            RoyalSecondary, RoyalSecondaryLight, RoyalSecondaryDark,
-            RoyalTertiary, RoyalOnPrimary, RoyalOnSecondary, RoyalOnTertiary,
-            RoyalBackground, RoyalSurface, RoyalOnBackground, RoyalOnSurface,
-            RoyalPrimaryContainer, RoyalSecondaryContainer,
-            RoyalOnPrimaryContainer, RoyalOnSecondaryContainer
-        )
+    fun testAllThemesContrast() {
+        // Dynamically test all themes - no need to add new test methods when themes are added
+        AllThemes.themes.forEach { themeData ->
+            testThemeColors(themeData.name, themeData.colorObject)
+        }
     }
 
-    @Test
-    fun testOceanThemeContrast() {
-        testThemeColors(
-            "Ocean",
-            OceanPrimary, OceanPrimaryLight, OceanPrimaryDark,
-            OceanSecondary, OceanSecondaryLight, OceanSecondaryDark,
-            OceanTertiary, OceanOnPrimary, OceanOnSecondary, OceanOnTertiary,
-            OceanBackground, OceanSurface, OceanOnBackground, OceanOnSurface,
-            OceanPrimaryContainer, OceanSecondaryContainer,
-            OceanOnPrimaryContainer, OceanOnSecondaryContainer
-        )
-    }
-
-    private fun testThemeColors(
-        themeName: String,
-        primary: Color, primaryLight: Color, primaryDark: Color,
-        secondary: Color, secondaryLight: Color, secondaryDark: Color,
-        tertiary: Color, onPrimary: Color, onSecondary: Color, onTertiary: Color,
-        background: Color, surface: Color, onBackground: Color, onSurface: Color,
-        primaryContainer: Color, secondaryContainer: Color,
-        onPrimaryContainer: Color, onSecondaryContainer: Color
-    ) {
+    private fun testThemeColors(themeName: String, colors: ThemeColorObject) {
         val colorPairs = listOf(
-            "$themeName Primary/OnPrimary" to Pair(primary, onPrimary),
-            "$themeName PrimaryLight/OnPrimary" to Pair(primaryLight, onPrimary),
-            "$themeName PrimaryDark/OnPrimary" to Pair(primaryDark, onPrimary),
-            "$themeName Secondary/OnSecondary" to Pair(secondary, onSecondary),
-            "$themeName SecondaryLight/OnSecondary" to Pair(secondaryLight, onSecondary),
-            "$themeName SecondaryDark/OnSecondary" to Pair(secondaryDark, onSecondary),
-            "$themeName Tertiary/OnTertiary" to Pair(tertiary, onTertiary),
-            "$themeName PrimaryContainer/OnPrimaryContainer" to Pair(primaryContainer, onPrimaryContainer),
-            "$themeName SecondaryContainer/OnSecondaryContainer" to Pair(secondaryContainer, onSecondaryContainer),
-            "$themeName Background/OnBackground" to Pair(background, onBackground),
-            "$themeName Surface/OnSurface" to Pair(surface, onSurface)
+            "$themeName Primary/OnPrimary" to Pair(colors.primary, colors.onPrimary),
+            "$themeName PrimaryLight/OnPrimary" to Pair(colors.primaryLight, colors.onPrimary),
+            "$themeName PrimaryDark/OnPrimary" to Pair(colors.primaryDark, colors.onPrimary),
+            "$themeName Secondary/OnSecondary" to Pair(colors.secondary, colors.onSecondary),
+            "$themeName SecondaryLight/OnSecondary" to Pair(colors.secondaryLight, colors.onSecondary),
+            "$themeName SecondaryDark/OnSecondary" to Pair(colors.secondaryDark, colors.onSecondary),
+            "$themeName Tertiary/OnTertiary" to Pair(colors.tertiary, colors.onTertiary),
+            "$themeName PrimaryContainer/OnPrimaryContainer" to Pair(colors.primaryContainer, colors.onPrimaryContainer),
+            "$themeName SecondaryContainer/OnSecondaryContainer" to Pair(colors.secondaryContainer, colors.onSecondaryContainer),
+            "$themeName Background/OnBackground" to Pair(colors.background, colors.onBackground),
+            "$themeName Surface/OnSurface" to Pair(colors.surface, colors.onSurface)
         )
 
         val failedPairs = mutableListOf<String>()

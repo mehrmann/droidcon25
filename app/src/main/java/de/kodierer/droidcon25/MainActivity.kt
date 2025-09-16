@@ -18,8 +18,9 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import de.kodierer.droidcon25.ui.theme.*
-import de.kodierer.droidcon25.generated.GeneratedStrings
+import de.kodierer.droidcon25.generated.AppTheme
+import de.kodierer.droidcon25.ui.theme.Droidcon25DemoApplicationTheme
+import de.kodierer.droidcon25.ui.theme.LocalAppColors
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,7 +55,7 @@ fun ColorDemoScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = GeneratedStrings.APP_TITLE,
+            text = "Hello Berlin!!!",
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)

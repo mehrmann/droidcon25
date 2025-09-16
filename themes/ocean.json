@@ -1,0 +1,24 @@
+{
+  "name": "Ocean Fire",
+  "enumName": "OCEAN",
+  "colors": {
+    "primary": "#1976d2",
+    "primaryLight": "#4791db",
+    "primaryDark": "#115293",
+    "secondary": "#d32f2f",
+    "secondaryLight": "#d32f2f",
+    "secondaryDark": "#9a1e1e",
+    "tertiary": "#388e3c",
+    "onPrimary": "#FFFFFF",
+    "onSecondary": "#FFFFFF",
+    "onTertiary": "#FFFFFF",
+    "background": "#FFFBFE",
+    "surface": "#FFFBFE",
+    "onBackground": "#1C1B1F",
+    "onSurface": "#1C1B1F",
+    "primaryContainer": "#E3F2FD",
+    "secondaryContainer": "#FFEBEE",
+    "onPrimaryContainer": "#0d47a1",
+    "onSecondaryContainer": "#7f0000"
+  }
+}

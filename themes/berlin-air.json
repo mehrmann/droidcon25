@@ -1,0 +1,24 @@
+{
+  "name": "Berlin Air",
+  "enumName": "BERLIN_AIR",
+  "colors": {
+    "primary": "#4682B4",
+    "primaryLight": "#6BA6CD",
+    "primaryDark": "#2F4F4F",
+    "secondary": "#708090",
+    "secondaryLight": "#9FB6CD",
+    "secondaryDark": "#556B2F",
+    "tertiary": "#B0C4DE",
+    "onPrimary": "#FFFFFF",
+    "onSecondary": "#FFFFFF",
+    "onTertiary": "#000000",
+    "background": "#F0F8FF",
+    "surface": "#F0F8FF",
+    "onBackground": "#2F4F4F",
+    "onSurface": "#2F4F4F",
+    "primaryContainer": "#E6F2FF",
+    "secondaryContainer": "#E6E6FA",
+    "onPrimaryContainer": "#1E3A5F",
+    "onSecondaryContainer": "#2F2F2F"
+  }
+}

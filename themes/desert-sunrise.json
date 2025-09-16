@@ -1,0 +1,24 @@
+{
+  "name": "Desert Sunrise",
+  "enumName": "DESERT_SUNRISE",
+  "colors": {
+    "primary": "#D2691E",
+    "primaryLight": "#E6954C",
+    "primaryDark": "#A0520D",
+    "secondary": "#FF6347",
+    "secondaryLight": "#FF8C69",
+    "secondaryDark": "#CD5C5C",
+    "tertiary": "#DAA520",
+    "onPrimary": "#FFFFFF",
+    "onSecondary": "#FFFFFF",
+    "onTertiary": "#000000",
+    "background": "#FFF8DC",
+    "surface": "#FFF8DC",
+    "onBackground": "#2F1B14",
+    "onSurface": "#2F1B14",
+    "primaryContainer": "#FFEFD5",
+    "secondaryContainer": "#FFE4E1",
+    "onPrimaryContainer": "#5D2914",
+    "onSecondaryContainer": "#8B0000"
+  }
+}

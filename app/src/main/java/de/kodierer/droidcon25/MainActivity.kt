@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import de.kodierer.droidcon25.generated.AppTheme
 import de.kodierer.droidcon25.ui.theme.Droidcon25DemoApplicationTheme
 import de.kodierer.droidcon25.ui.theme.LocalAppColors
+import de.kodierer.droidcon25.ui.theme.LocalThemeData
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,9 +31,9 @@ class MainActivity : ComponentActivity() {
             var currentTheme by remember { mutableStateOf(AppTheme.ROYAL) }
 
             Droidcon25DemoApplicationTheme(theme = currentTheme) {
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     ColorDemoScreen(
-                        currentTheme = currentTheme,
                         onThemeChange = { currentTheme = it },
                         modifier = Modifier.padding(innerPadding)
                     )
@@ -44,7 +45,6 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ColorDemoScreen(
-    currentTheme: AppTheme,
     onThemeChange: (AppTheme) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -62,7 +62,6 @@ fun ColorDemoScreen(
         )
 
         ThemeSelector(
-            currentTheme = currentTheme,
             onThemeChange = onThemeChange,
             modifier = Modifier.padding(bottom = 32.dp)
         )
@@ -73,12 +72,12 @@ fun ColorDemoScreen(
 
 @Composable
 fun ThemeSelector(
-    currentTheme: AppTheme,
     onThemeChange: (AppTheme) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
     val colors = LocalAppColors.current
+    val currentTheme = LocalThemeData.current.theme
 
     Box(modifier = modifier) {
         OutlinedButton(
@@ -184,7 +183,6 @@ fun ColorSwatchItem(swatch: ColorSwatch) {
 fun ColorDemoPreview() {
     Droidcon25DemoApplicationTheme {
         ColorDemoScreen(
-            currentTheme = AppTheme.ROYAL,
             onThemeChange = { }
         )
     }

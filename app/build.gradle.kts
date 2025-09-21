@@ -52,10 +52,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
     dependsOn(generateSources)
 }
 
-tasks.named("preBuild") {
-    dependsOn(generateSources)
-}
-
 dependencies {
 
     implementation(libs.androidx.core.ktx)

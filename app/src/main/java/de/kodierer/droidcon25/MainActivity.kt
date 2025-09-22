@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -83,14 +84,14 @@ fun ThemeSelector(
         OutlinedButton(
             onClick = { expanded = true },
             colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = colors.primaryContainer,
-                contentColor = colors.primaryDark
+                containerColor = animateColorAsState(colors.primaryContainer).value,
+                contentColor = animateColorAsState(colors.primaryDark).value
             ),
             border = BorderStroke(1.dp, colors.primaryDark)
         ) {
             Text(
                 text = "Theme: ${currentTheme.displayName}",
-                color = colors.primaryDark
+                color = animateColorAsState(colors.primaryDark).value
             )
         }
 
@@ -103,7 +104,7 @@ fun ThemeSelector(
                     text = {
                         Text(
                             text = theme.displayName,
-                            color = colors.onSurface
+                            color = animateColorAsState(colors.onSurface).value
                         )
                     },
                     onClick = {
@@ -155,7 +156,7 @@ fun ColorSwatchItem(swatch: ColorSwatch) {
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp),
-        colors = CardDefaults.cardColors(containerColor = swatch.color)
+        colors = CardDefaults.cardColors(containerColor = animateColorAsState(swatch.color).value)
     ) {
         Column(
             modifier = Modifier
@@ -165,13 +166,13 @@ fun ColorSwatchItem(swatch: ColorSwatch) {
         ) {
             Text(
                 text = swatch.name,
-                color = swatch.onColor,
+                color = animateColorAsState(swatch.onColor).value,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Medium
             )
             Text(
                 text = String.format("#%06X", swatch.color.toArgb() and 0xFFFFFF),
-                color = swatch.onColor,
+                color = animateColorAsState(swatch.onColor).value,
                 style = MaterialTheme.typography.bodySmall
             )
         }

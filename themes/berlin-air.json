@@ -3,10 +3,10 @@
   "enumName": "BERLIN_AIR",
   "colors": {
     "primary": "#4682B4",
-    "primaryLight": "#6BA6CD",
+    "primaryLight": "#5B96BD",
     "primaryDark": "#2F4F4F",
     "secondary": "#708090",
-    "secondaryLight": "#9FB6CD",
+    "secondaryLight": "#7A8FA0",
     "secondaryDark": "#556B2F",
     "tertiary": "#B0C4DE",
     "onPrimary": "#FFFFFF",

@@ -3,10 +3,10 @@
   "enumName": "DESERT_SUNRISE",
   "colors": {
     "primary": "#D2691E",
-    "primaryLight": "#E6954C",
+    "primaryLight": "#C8783A",
     "primaryDark": "#A0520D",
-    "secondary": "#FF6347",
-    "secondaryLight": "#FF8C69",
+    "secondary": "#E54D2E",
+    "secondaryLight": "#D4735A",
     "secondaryDark": "#CD5C5C",
     "tertiary": "#DAA520",
     "onPrimary": "#FFFFFF",

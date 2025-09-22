@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("de.kodierer.droidcon25.theme-generator")
 }
 
 android {
@@ -40,16 +41,17 @@ android {
 
     sourceSets {
         getByName("main") {
-            kotlin.srcDir("${layout.buildDirectory.get()}/generated/codegen/src")
+            kotlin.srcDir("build/generated/themes/src")
         }
     }
+
 }
 
-val generateSources = createCodeGenerationTask()
-
-// Ensure generated sources are available before Kotlin compilation
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    dependsOn(generateSources)
+// Configure the theme generator plugin
+themeGenerator {
+    inputDirectory.set(rootProject.file("themes"))
+    outputDirectory.set(layout.buildDirectory.dir("generated/themes/src"))
+    packageName.set("de.kodierer.droidcon25.generated")
 }
 
 dependencies {

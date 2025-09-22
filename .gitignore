@@ -16,6 +16,7 @@ local.properties
 
 # buildSrc build artifacts
 buildSrc/build/
+theme-generator-plugin/build/
 
 # Keep CLAUDE.md local only
 CLAUDE.md

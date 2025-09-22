@@ -21,3 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Droidcon 25 Demo Application"
 include(":app")
+
+includeBuild("theme-generator-plugin")

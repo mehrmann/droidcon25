@@ -11,6 +11,9 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.SkipWhenEmpty
 import java.io.File
 import java.time.LocalDateTime
 import kotlinx.serialization.Serializable
@@ -48,7 +51,7 @@ class ThemeGeneratorPlugin : Plugin<Project> {
 
             // Configure source sets when first variant is detected
             var configured = false
-            androidComponentsExt.onVariants { variant ->
+            androidComponentsExt.onVariants { _ ->
                 if (!configured) {
                     target.afterEvaluate {
                         val outputDir = extension.outputDirectory.get().asFile
@@ -128,6 +131,14 @@ abstract class ThemeGeneratorExtension {
  * Task that generates theme classes from JSON definitions
  */
 abstract class GenerateThemesTask : DefaultTask() {
+
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:SkipWhenEmpty
+    val inputFiles: FileCollection
+        get() = project.fileTree(inputDirectory.get().asFile) {
+            include("*.json")
+        }
 
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)

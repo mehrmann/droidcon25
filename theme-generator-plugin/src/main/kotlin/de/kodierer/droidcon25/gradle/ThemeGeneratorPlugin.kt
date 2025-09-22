@@ -183,6 +183,9 @@ abstract class GenerateThemesTask : DefaultTask() {
 
         logger.info("Found ${themes.size} themes: ${themes.map { it.name }}")
 
+        // Validate themes consistency and color format
+        validateThemes(themes)
+
         // Generate files
         generateColorFile(outputDir, themes, pkg)
         generateThemeFile(outputDir, themes, pkg)
@@ -190,35 +193,83 @@ abstract class GenerateThemesTask : DefaultTask() {
         logger.info("Theme generation completed successfully")
     }
 
+    private fun validateThemes(themes: List<Theme>) {
+        if (themes.isEmpty()) return
+
+        // Get all color keys from first theme as reference
+        val referenceTheme = themes.first()
+        val referenceColors = referenceTheme.colors.keys.sorted()
+
+        logger.info("Reference color set from '${referenceTheme.name}': $referenceColors")
+
+        // Validate all themes have the same color keys
+        themes.forEach { theme ->
+            val themeColors = theme.colors.keys.sorted()
+
+            if (themeColors != referenceColors) {
+                val missing = referenceColors - themeColors.toSet()
+                val extra = themeColors - referenceColors.toSet()
+
+                val errorMessage = buildString {
+                    append("Theme '${theme.name}' has inconsistent colors compared to '${referenceTheme.name}':")
+                    if (missing.isNotEmpty()) {
+                        append("\n  Missing colors: ${missing.joinToString(", ")}")
+                    }
+                    if (extra.isNotEmpty()) {
+                        append("\n  Extra colors: ${extra.joinToString(", ")}")
+                    }
+                    append("\n  Expected colors: ${referenceColors.joinToString(", ")}")
+                    append("\n  Actual colors: ${themeColors.joinToString(", ")}")
+                }
+
+                throw GradleException(errorMessage)
+            }
+
+            // Validate hex color format
+            theme.colors.forEach { (colorName, colorValue) ->
+                if (!isValidHexColor(colorValue)) {
+                    throw GradleException("Invalid hex color format in theme '${theme.name}' for color '$colorName': '$colorValue'. Expected format: #RRGGBB or #RGB")
+                }
+            }
+        }
+
+        logger.info("✓ All themes have consistent color sets with ${referenceColors.size} colors")
+        logger.info("✓ All color values are valid hex format")
+    }
+
+    private fun isValidHexColor(color: String): Boolean {
+        return color.matches(Regex("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"))
+    }
+
     private fun generateColorFile(outputDir: File, themes: List<Theme>, packageName: String) {
         val packagePath = packageName.replace('.', '/')
         val colorFile = File(outputDir, "$packagePath/GeneratedColors.kt")
         colorFile.parentFile.mkdirs()
 
-        val themeObjects = themes.map { theme ->
+        // Get all color names from first theme (already validated to be consistent)
+        val colorNames = themes.first().colors.keys.sorted()
+
+        // Generate interface with all color properties
+        val interfaceProperties = colorNames.joinToString("\n    ") { colorName ->
+            val propertyName = sanitizePropertyName(colorName)
+            "val $propertyName: Color"
+        }
+
+        // Generate theme objects
+        val themeObjects = themes.joinToString("\n\n") { theme ->
             val objectName = theme.enumName.lowercase().replaceFirstChar { it.uppercase() }
+            val colorProperties = colorNames.joinToString("\n    ") { colorName ->
+                val propertyName = sanitizePropertyName(colorName)
+                val colorValue = theme.colors[colorName]!!
+                val hexValue = normalizeHexColor(colorValue)
+                "override val $propertyName = Color(0xFF$hexValue)"
+            }
+
             """@Immutable
 object $objectName : ThemeColorObject {
-    override val primary = Color(0xFF${theme.colors.primary.removePrefix("#")})
-    override val primaryLight = Color(0xFF${theme.colors.primaryLight.removePrefix("#")})
-    override val primaryDark = Color(0xFF${theme.colors.primaryDark.removePrefix("#")})
-    override val secondary = Color(0xFF${theme.colors.secondary.removePrefix("#")})
-    override val secondaryLight = Color(0xFF${theme.colors.secondaryLight.removePrefix("#")})
-    override val secondaryDark = Color(0xFF${theme.colors.secondaryDark.removePrefix("#")})
-    override val tertiary = Color(0xFF${theme.colors.tertiary.removePrefix("#")})
-    override val onPrimary = Color(0xFF${theme.colors.onPrimary.removePrefix("#")})
-    override val onSecondary = Color(0xFF${theme.colors.onSecondary.removePrefix("#")})
-    override val onTertiary = Color(0xFF${theme.colors.onTertiary.removePrefix("#")})
-    override val background = Color(0xFF${theme.colors.background.removePrefix("#")})
-    override val surface = Color(0xFF${theme.colors.surface.removePrefix("#")})
-    override val onBackground = Color(0xFF${theme.colors.onBackground.removePrefix("#")})
-    override val onSurface = Color(0xFF${theme.colors.onSurface.removePrefix("#")})
-    override val primaryContainer = Color(0xFF${theme.colors.primaryContainer.removePrefix("#")})
-    override val secondaryContainer = Color(0xFF${theme.colors.secondaryContainer.removePrefix("#")})
-    override val onPrimaryContainer = Color(0xFF${theme.colors.onPrimaryContainer.removePrefix("#")})
-    override val onSecondaryContainer = Color(0xFF${theme.colors.onSecondaryContainer.removePrefix("#")})
+    $colorProperties
 }"""
-        }.joinToString("\n\n")
+        }
 
         colorFile.writeText("""package $packageName
 
@@ -226,8 +277,29 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import de.kodierer.droidcon25.ui.theme.ThemeColorObject
 
+// Auto-generated interface based on theme color keys
+interface ThemeColorObject {
+    $interfaceProperties
+}
+
 $themeObjects
 """)
+    }
+
+    private fun sanitizePropertyName(colorName: String): String {
+        // Convert color names to valid Kotlin property names
+        return colorName.replace(Regex("[^a-zA-Z0-9]"), "")
+            .replaceFirstChar { it.lowercase() }
+    }
+
+    private fun normalizeHexColor(color: String): String {
+        val cleaned = color.removePrefix("#")
+        // Convert 3-digit hex to 6-digit hex
+        return if (cleaned.length == 3) {
+            cleaned.map { "$it$it" }.joinToString("")
+        } else {
+            cleaned
+        }
     }
 
     private fun generateThemeFile(outputDir: File, themes: List<Theme>, packageName: String) {
@@ -277,30 +349,8 @@ object AllThemes {
 }
 
 @Serializable
-data class ThemeColors(
-    val primary: String,
-    val primaryLight: String,
-    val primaryDark: String,
-    val secondary: String,
-    val secondaryLight: String,
-    val secondaryDark: String,
-    val tertiary: String,
-    val onPrimary: String,
-    val onSecondary: String,
-    val onTertiary: String,
-    val background: String,
-    val surface: String,
-    val onBackground: String,
-    val onSurface: String,
-    val primaryContainer: String,
-    val secondaryContainer: String,
-    val onPrimaryContainer: String,
-    val onSecondaryContainer: String
-)
-
-@Serializable
 data class Theme(
     val name: String,
     val enumName: String,
-    val colors: ThemeColors
+    val colors: Map<String, String>
 )

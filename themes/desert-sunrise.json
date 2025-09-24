@@ -1,24 +1,100 @@
 {
-  "name": "Desert Sunrise",
-  "enumName": "DESERT_SUNRISE",
-  "colors": {
-    "primary": "#D2691E",
-    "primaryLight": "#C8783A",
-    "primaryDark": "#A0520D",
-    "secondary": "#E54D2E",
-    "secondaryLight": "#D4735A",
-    "secondaryDark": "#CD5C5C",
-    "tertiary": "#DAA520",
-    "onPrimary": "#FFFFFF",
-    "onSecondary": "#FFFFFF",
-    "onTertiary": "#000000",
-    "background": "#FFF8DC",
-    "surface": "#FFF8DC",
-    "onBackground": "#2F1B14",
-    "onSurface": "#2F1B14",
-    "primaryContainer": "#FFEFD5",
-    "secondaryContainer": "#FFE4E1",
-    "onPrimaryContainer": "#5D2914",
-    "onSecondaryContainer": "#8B0000"
+  "color": {
+    "primary": {
+      "value": "#D2691E",
+      "type": "color",
+      "description": "Primary brand color - desert orange"
+    },
+    "primaryLight": {
+      "value": "#C8783A",
+      "type": "color",
+      "description": "Light variant of primary color"
+    },
+    "primaryDark": {
+      "value": "#A0520D",
+      "type": "color",
+      "description": "Dark variant of primary color"
+    },
+    "secondary": {
+      "value": "#E54D2E",
+      "type": "color",
+      "description": "Secondary color - warm red"
+    },
+    "secondaryLight": {
+      "value": "#D4735A",
+      "type": "color",
+      "description": "Light variant of secondary color"
+    },
+    "secondaryDark": {
+      "value": "#CD5C5C",
+      "type": "color",
+      "description": "Dark variant of secondary color"
+    },
+    "tertiary": {
+      "value": "#DAA520",
+      "type": "color",
+      "description": "Tertiary accent color - goldenrod"
+    },
+    "onPrimary": {
+      "value": "#FFFFFF",
+      "type": "color",
+      "description": "Text/icon color on primary background"
+    },
+    "onSecondary": {
+      "value": "#FFFFFF",
+      "type": "color",
+      "description": "Text/icon color on secondary background"
+    },
+    "onTertiary": {
+      "value": "#000000",
+      "type": "color",
+      "description": "Text/icon color on tertiary background"
+    },
+    "background": {
+      "value": "#FFF8DC",
+      "type": "color",
+      "description": "Main background color - cornsilk"
+    },
+    "surface": {
+      "value": "{color.background}",
+      "type": "color",
+      "description": "Surface color, references background"
+    },
+    "onBackground": {
+      "value": "#2F1B14",
+      "type": "color",
+      "description": "Text/icon color on background"
+    },
+    "onSurface": {
+      "value": "{color.onBackground}",
+      "type": "color",
+      "description": "Text/icon color on surface, references onBackground"
+    },
+    "primaryContainer": {
+      "value": "#FFEFD5",
+      "type": "color",
+      "description": "Container color for primary elements"
+    },
+    "secondaryContainer": {
+      "value": "#FFE4E1",
+      "type": "color",
+      "description": "Container color for secondary elements"
+    },
+    "onPrimaryContainer": {
+      "value": "#5D2914",
+      "type": "color",
+      "description": "Text/icon color on primary container"
+    },
+    "onSecondaryContainer": {
+      "value": "#8B0000",
+      "type": "color",
+      "description": "Text/icon color on secondary container"
+    }
+  },
+  "$themes": {
+    "desert-sunrise": {
+      "name": "Desert Sunrise",
+      "enumName": "DESERT_SUNRISE"
+    }
   }
 }

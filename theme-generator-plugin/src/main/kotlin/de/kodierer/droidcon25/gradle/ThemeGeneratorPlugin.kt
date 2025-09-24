@@ -17,6 +17,7 @@ import org.gradle.api.tasks.SkipWhenEmpty
 import java.io.File
 import java.time.LocalDateTime
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString
 import com.android.build.gradle.BaseExtension
@@ -164,36 +165,232 @@ abstract class GenerateThemesTask : DefaultTask() {
         outputDir.mkdirs()
 
         val json = Json { ignoreUnknownKeys = true }
-        val themes = mutableListOf<Theme>()
+        val parsedThemes = mutableListOf<ParsedTheme>()
 
-        // Read all JSON theme files
+        // Read all JSON token files
         if (inputDir.exists()) {
-            inputDir.listFiles { file -> file.extension == "json" }?.forEach { themeFile ->
-                logger.info("Processing theme file: ${themeFile.name}")
-                val themeContent = themeFile.readText()
-                val theme = json.decodeFromString<Theme>(themeContent)
-                themes.add(theme)
+            inputDir.listFiles { file -> file.extension == "json" }?.forEach { tokenFile ->
+                logger.info("Processing token file: ${tokenFile.name}")
+                val tokenContent = tokenFile.readText()
+
+                try {
+                    // Try Token Studio format first
+                    val tokenSet = json.decodeFromString<TokenSet>(tokenContent)
+                    val themes = parseTokenStudioFormat(tokenFile.nameWithoutExtension, tokenSet)
+                    parsedThemes.addAll(themes)
+                } catch (e: Exception) {
+                    try {
+                        // Fallback to legacy format
+                        val legacyTheme = json.decodeFromString<LegacyTheme>(tokenContent)
+                        val theme = ParsedTheme(
+                            name = legacyTheme.name,
+                            enumName = legacyTheme.enumName,
+                            colors = legacyTheme.colors
+                        )
+                        parsedThemes.add(theme)
+                        logger.info("Loaded legacy theme: ${legacyTheme.name}")
+                    } catch (legacyError: Exception) {
+                        logger.error("Failed to parse ${tokenFile.name} as Token Studio or legacy format")
+                        logger.error("Token Studio error: ${e.message}")
+                        logger.error("Legacy error: ${legacyError.message}")
+                        throw GradleException("Failed to parse theme file: ${tokenFile.name}")
+                    }
+                }
             }
         }
 
-        if (themes.isEmpty()) {
+        if (parsedThemes.isEmpty()) {
             logger.warn("No theme files found in ${inputDir.absolutePath}")
             return
         }
 
-        logger.info("Found ${themes.size} themes: ${themes.map { it.name }}")
+        logger.info("Found ${parsedThemes.size} themes: ${parsedThemes.map { it.name }}")
 
         // Validate themes consistency and color format
-        validateThemes(themes)
+        validateParsedThemes(parsedThemes)
 
         // Generate files
-        generateColorFile(outputDir, themes, pkg)
-        generateThemeFile(outputDir, themes, pkg)
+        generateColorFile(outputDir, parsedThemes, pkg)
+        generateThemeFile(outputDir, parsedThemes, pkg)
 
         logger.info("Theme generation completed successfully")
     }
 
-    private fun validateThemes(themes: List<Theme>) {
+    private fun parseTokenStudioFormat(fileName: String, tokenSet: TokenSet): List<ParsedTheme> {
+        val themes = mutableListOf<ParsedTheme>()
+
+        // Extract color tokens
+        val colorTokens = tokenSet.color ?: emptyMap()
+        val resolvedColors = resolveTokenReferences(colorTokens)
+
+        // Check if themes are defined in metadata
+        val themeMetadata = tokenSet.`$themes`
+        if (themeMetadata != null && themeMetadata.isNotEmpty()) {
+            // Use defined themes
+            themeMetadata.forEach { (themeKey, metadata) ->
+                themes.add(ParsedTheme(
+                    name = metadata.name,
+                    enumName = metadata.enumName,
+                    colors = resolvedColors
+                ))
+            }
+        } else {
+            // Default: create one theme from the file
+            val themeName = fileName.split("-").joinToString(" ") { word ->
+                word.replaceFirstChar { it.uppercase() }
+            }
+            val enumName = fileName.uppercase().replace("-", "_")
+
+            themes.add(ParsedTheme(
+                name = themeName,
+                enumName = enumName,
+                colors = resolvedColors
+            ))
+        }
+
+        return themes
+    }
+
+    private fun resolveTokenReferences(colorTokens: Map<String, ColorToken>): Map<String, String> {
+        val resolved = mutableMapOf<String, String>()
+        val unresolved = colorTokens.toMutableMap()
+
+        // Enhanced resolution with color modifier support
+        var maxIterations = 10
+        while (unresolved.isNotEmpty() && maxIterations > 0) {
+            val resolvedInIteration = mutableListOf<String>()
+
+            unresolved.forEach { (tokenName, token) ->
+                val value = token.getActualValue()
+                if (value.startsWith("{") && value.endsWith("}")) {
+                    // It's a reference
+                    val referencePath = value.substring(1, value.length - 1)
+                    val parts = referencePath.split(".")
+                    if (parts.size == 2 && parts[0] == "color") {
+                        val referencedToken = parts[1]
+                        if (resolved.containsKey(referencedToken)) {
+                            val baseColor = resolved[referencedToken]!!
+                            val modifier = token.getModifier()
+
+                            val finalColor = if (modifier != null) {
+                                applyColorModifier(baseColor, modifier)
+                            } else {
+                                baseColor
+                            }
+
+                            resolved[tokenName] = finalColor
+                            resolvedInIteration.add(tokenName)
+                        }
+                    }
+                } else {
+                    // It's a direct value, apply modifier if present
+                    val modifier = token.getModifier()
+                    val finalColor = if (modifier != null) {
+                        applyColorModifier(value, modifier)
+                    } else {
+                        value
+                    }
+                    resolved[tokenName] = finalColor
+                    resolvedInIteration.add(tokenName)
+                }
+            }
+
+            resolvedInIteration.forEach { unresolved.remove(it) }
+            maxIterations--
+        }
+
+        // Add any remaining unresolved tokens as-is (they might be invalid references)
+        unresolved.forEach { (tokenName, token) ->
+            resolved[tokenName] = token.getActualValue()
+        }
+
+        return resolved
+    }
+
+    private fun applyColorModifier(baseColor: String, modifier: ColorModifier): String {
+        try {
+            val rgb = parseHexColor(baseColor)
+
+            return when (modifier.type.lowercase()) {
+                "lighten" -> lightenColor(rgb, modifier.value)
+                "darken" -> darkenColor(rgb, modifier.value)
+                "alpha" -> applyAlpha(rgb, modifier.value)
+                "mix" -> mixColors(rgb, modifier.color ?: "#FFFFFF", modifier.value)
+                else -> {
+                    logger.warn("Unknown color modifier type: ${modifier.type}")
+                    baseColor
+                }
+            }
+        } catch (e: Exception) {
+            logger.warn("Failed to apply color modifier to $baseColor: ${e.message}")
+            return baseColor
+        }
+    }
+
+    private fun parseHexColor(hex: String): Triple<Int, Int, Int> {
+        val cleaned = hex.removePrefix("#")
+        val expandedHex = if (cleaned.length == 3) {
+            cleaned.map { "$it$it" }.joinToString("")
+        } else {
+            cleaned
+        }
+
+        if (expandedHex.length != 6) {
+            throw IllegalArgumentException("Invalid hex color format: $hex")
+        }
+
+        val r = expandedHex.substring(0, 2).toInt(16)
+        val g = expandedHex.substring(2, 4).toInt(16)
+        val b = expandedHex.substring(4, 6).toInt(16)
+
+        return Triple(r, g, b)
+    }
+
+    private fun lightenColor(rgb: Triple<Int, Int, Int>, amount: Double): String {
+        val (r, g, b) = rgb
+        val factor = 1.0 + amount
+
+        val newR = minOf(255, (r * factor).toInt())
+        val newG = minOf(255, (g * factor).toInt())
+        val newB = minOf(255, (b * factor).toInt())
+
+        return "#%02X%02X%02X".format(newR, newG, newB)
+    }
+
+    private fun darkenColor(rgb: Triple<Int, Int, Int>, amount: Double): String {
+        val (r, g, b) = rgb
+        val factor = 1.0 - amount
+
+        val newR = maxOf(0, (r * factor).toInt())
+        val newG = maxOf(0, (g * factor).toInt())
+        val newB = maxOf(0, (b * factor).toInt())
+
+        return "#%02X%02X%02X".format(newR, newG, newB)
+    }
+
+    private fun applyAlpha(rgb: Triple<Int, Int, Int>, alpha: Double): String {
+        val (r, g, b) = rgb
+        val alphaValue = (alpha * 255).toInt().coerceIn(0, 255)
+
+        return "#%02X%02X%02X%02X".format(alphaValue, r, g, b)
+    }
+
+    private fun mixColors(rgb1: Triple<Int, Int, Int>, color2: String, ratio: Double): String {
+        val rgb2 = parseHexColor(color2)
+        val (r1, g1, b1) = rgb1
+        val (r2, g2, b2) = rgb2
+
+        val mixRatio = ratio.coerceIn(0.0, 1.0)
+        val invRatio = 1.0 - mixRatio
+
+        val newR = (r1 * invRatio + r2 * mixRatio).toInt().coerceIn(0, 255)
+        val newG = (g1 * invRatio + g2 * mixRatio).toInt().coerceIn(0, 255)
+        val newB = (b1 * invRatio + b2 * mixRatio).toInt().coerceIn(0, 255)
+
+        return "#%02X%02X%02X".format(newR, newG, newB)
+    }
+
+    private fun validateParsedThemes(themes: List<ParsedTheme>) {
         if (themes.isEmpty()) return
 
         // Get all color keys from first theme as reference
@@ -227,21 +424,26 @@ abstract class GenerateThemesTask : DefaultTask() {
 
             // Validate hex color format
             theme.colors.forEach { (colorName, colorValue) ->
-                if (!isValidHexColor(colorValue)) {
-                    throw GradleException("Invalid hex color format in theme '${theme.name}' for color '$colorName': '$colorValue'. Expected format: #RRGGBB or #RGB")
+                if (!isValidHexColor(colorValue) && !isValidTokenReference(colorValue)) {
+                    throw GradleException("Invalid color format in theme '${theme.name}' for color '$colorName': '$colorValue'. Expected format: #RRGGBB, #RGB, or {color.reference}")
                 }
             }
         }
 
         logger.info("✓ All themes have consistent color sets with ${referenceColors.size} colors")
-        logger.info("✓ All color values are valid hex format")
+        logger.info("✓ All color values are valid format")
     }
+
+    private fun isValidTokenReference(value: String): Boolean {
+        return value.startsWith("{") && value.endsWith("}") && value.contains(".")
+    }
+
 
     private fun isValidHexColor(color: String): Boolean {
-        return color.matches(Regex("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"))
+        return color.matches(Regex("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$"))
     }
 
-    private fun generateColorFile(outputDir: File, themes: List<Theme>, packageName: String) {
+    private fun generateColorFile(outputDir: File, themes: List<ParsedTheme>, packageName: String) {
         val packagePath = packageName.replace('.', '/')
         val colorFile = File(outputDir, "$packagePath/GeneratedColors.kt")
         colorFile.parentFile.mkdirs()
@@ -295,14 +497,15 @@ $themeObjects
     private fun normalizeHexColor(color: String): String {
         val cleaned = color.removePrefix("#")
         // Convert 3-digit hex to 6-digit hex
-        return if (cleaned.length == 3) {
-            cleaned.map { "$it$it" }.joinToString("")
-        } else {
-            cleaned
+        return when (cleaned.length) {
+            3 -> cleaned.map { "$it$it" }.joinToString("")
+            6 -> cleaned
+            8 -> cleaned // ARGB format, keep as-is
+            else -> cleaned
         }
     }
 
-    private fun generateThemeFile(outputDir: File, themes: List<Theme>, packageName: String) {
+    private fun generateThemeFile(outputDir: File, themes: List<ParsedTheme>, packageName: String) {
         val packagePath = packageName.replace('.', '/')
         val themeFile = File(outputDir, "$packagePath/GeneratedThemes.kt")
         themeFile.parentFile.mkdirs()
@@ -348,8 +551,98 @@ object AllThemes {
     }
 }
 
+// Token Studio format support
 @Serializable
-data class Theme(
+data class TokenSet(
+    val color: Map<String, ColorToken>? = null,
+    val spacing: Map<String, DimensionToken>? = null,
+    val typography: Map<String, TypographyToken>? = null,
+    // Add metadata for theme identification (non-standard but useful)
+    val `$themes`: Map<String, ThemeMetadata>? = null
+)
+
+@Serializable
+data class ThemeMetadata(
+    val name: String,
+    val enumName: String
+)
+
+@Serializable
+data class ColorToken(
+    val value: String,                    // "#FF0000" or "{color.primary}"
+    val type: String = "color",
+    val description: String? = null,
+    // W3C DTCG format support
+    @SerialName("\$value") val dollarValue: String? = null,
+    @SerialName("\$type") val dollarType: String? = null,
+    @SerialName("\$description") val dollarDescription: String? = null,
+    // Token Studio color modifier support
+    @SerialName("\$extensions") val extensions: TokenExtensions? = null
+) {
+    // Helper to get actual value regardless of format
+    fun getActualValue(): String = dollarValue ?: value
+    fun getActualType(): String = dollarType ?: type
+    fun getActualDescription(): String? = dollarDescription ?: description
+    fun getModifier(): ColorModifier? = extensions?.studioTokens?.modify
+}
+
+@Serializable
+data class DimensionToken(
+    val value: String,                    // "16px" or "{spacing.base}"
+    val type: String = "dimension",
+    val description: String? = null,
+    @SerialName("\$value") val dollarValue: String? = null,
+    @SerialName("\$type") val dollarType: String? = null,
+    @SerialName("\$description") val dollarDescription: String? = null
+)
+
+@Serializable
+data class TypographyToken(
+    val value: TypographyValue? = null,
+    val type: String = "typography",
+    val description: String? = null,
+    @SerialName("\$value") val dollarValue: TypographyValue? = null,
+    @SerialName("\$type") val dollarType: String? = null,
+    @SerialName("\$description") val dollarDescription: String? = null
+)
+
+@Serializable
+data class TypographyValue(
+    val fontFamily: String? = null,
+    val fontSize: String? = null,
+    val fontWeight: String? = null,
+    val lineHeight: String? = null,
+    val letterSpacing: String? = null
+)
+
+// Legacy theme format for backward compatibility
+@Serializable
+data class LegacyTheme(
+    val name: String,
+    val enumName: String,
+    val colors: Map<String, String>
+)
+
+@Serializable
+data class TokenExtensions(
+    @SerialName("studio.tokens") val studioTokens: StudioTokens? = null
+)
+
+@Serializable
+data class StudioTokens(
+    val modify: ColorModifier? = null
+)
+
+@Serializable
+data class ColorModifier(
+    val type: String,        // "lighten", "darken", "alpha", "mix"
+    val value: Double,       // 0.0 to 1.0
+    val space: String? = null, // "lch", "srgb", "p3", "hsl"
+    val color: String? = null  // For mix modifier: the color to mix with
+)
+
+// Internal representation after parsing
+data class ParsedTheme(
     val name: String,
     val enumName: String,
     val colors: Map<String, String>

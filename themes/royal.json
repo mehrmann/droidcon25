@@ -1,24 +1,100 @@
 {
-  "name": "Royal Purple",
-  "enumName": "ROYAL",
-  "colors": {
-    "primary": "#6650a4",
-    "primaryLight": "#7B6BB0",
-    "primaryDark": "#4A3B7A",
-    "secondary": "#625b71",
-    "secondaryLight": "#746B7E",
-    "secondaryDark": "#4A4458",
-    "tertiary": "#7D5260",
-    "onPrimary": "#FFFFFF",
-    "onSecondary": "#FFFFFF",
-    "onTertiary": "#FFFFFF",
-    "background": "#FFFBFE",
-    "surface": "#FFFBFE",
-    "onBackground": "#1C1B1F",
-    "onSurface": "#1C1B1F",
-    "primaryContainer": "#EADDFF",
-    "secondaryContainer": "#E8DEF8",
-    "onPrimaryContainer": "#21005D",
-    "onSecondaryContainer": "#1D192B"
+  "color": {
+    "primary": {
+      "value": "#6650a4",
+      "type": "color",
+      "description": "Primary brand color - royal purple"
+    },
+    "primaryLight": {
+      "value": "#7B6BB0",
+      "type": "color",
+      "description": "Light variant of primary color"
+    },
+    "primaryDark": {
+      "value": "#4A3B7A",
+      "type": "color",
+      "description": "Dark variant of primary color"
+    },
+    "secondary": {
+      "value": "#625b71",
+      "type": "color",
+      "description": "Secondary color - muted purple"
+    },
+    "secondaryLight": {
+      "value": "#746B7E",
+      "type": "color",
+      "description": "Light variant of secondary color"
+    },
+    "secondaryDark": {
+      "value": "#4A4458",
+      "type": "color",
+      "description": "Dark variant of secondary color"
+    },
+    "tertiary": {
+      "value": "#7D5260",
+      "type": "color",
+      "description": "Tertiary accent color - dusty rose"
+    },
+    "onPrimary": {
+      "value": "#FFFFFF",
+      "type": "color",
+      "description": "Text/icon color on primary background"
+    },
+    "onSecondary": {
+      "value": "#FFFFFF",
+      "type": "color",
+      "description": "Text/icon color on secondary background"
+    },
+    "onTertiary": {
+      "value": "#FFFFFF",
+      "type": "color",
+      "description": "Text/icon color on tertiary background"
+    },
+    "background": {
+      "value": "#FFFBFE",
+      "type": "color",
+      "description": "Main background color - neutral white"
+    },
+    "surface": {
+      "value": "{color.background}",
+      "type": "color",
+      "description": "Surface color, references background"
+    },
+    "onBackground": {
+      "value": "#1C1B1F",
+      "type": "color",
+      "description": "Text/icon color on background"
+    },
+    "onSurface": {
+      "value": "{color.onBackground}",
+      "type": "color",
+      "description": "Text/icon color on surface, references onBackground"
+    },
+    "primaryContainer": {
+      "value": "#EADDFF",
+      "type": "color",
+      "description": "Container color for primary elements"
+    },
+    "secondaryContainer": {
+      "value": "#E8DEF8",
+      "type": "color",
+      "description": "Container color for secondary elements"
+    },
+    "onPrimaryContainer": {
+      "value": "#21005D",
+      "type": "color",
+      "description": "Text/icon color on primary container"
+    },
+    "onSecondaryContainer": {
+      "value": "#1D192B",
+      "type": "color",
+      "description": "Text/icon color on secondary container"
+    }
+  },
+  "$themes": {
+    "royal": {
+      "name": "Royal Purple",
+      "enumName": "ROYAL"
+    }
   }
 }

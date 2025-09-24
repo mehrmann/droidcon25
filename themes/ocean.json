@@ -1,24 +1,100 @@
 {
-  "name": "Ocean Fire",
-  "enumName": "OCEAN",
-  "colors": {
-    "primary": "#1976d2",
-    "primaryLight": "#4791db",
-    "primaryDark": "#115293",
-    "secondary": "#d32f2f",
-    "secondaryLight": "#d32f2f",
-    "secondaryDark": "#9a1e1e",
-    "tertiary": "#388e3c",
-    "onPrimary": "#FFFFFF",
-    "onSecondary": "#FFFFFF",
-    "onTertiary": "#FFFFFF",
-    "background": "#FFFBFE",
-    "surface": "#FFFBFE",
-    "onBackground": "#1C1B1F",
-    "onSurface": "#1C1B1F",
-    "primaryContainer": "#E3F2FD",
-    "secondaryContainer": "#FFEBEE",
-    "onPrimaryContainer": "#0d47a1",
-    "onSecondaryContainer": "#7f0000"
+  "color": {
+    "primary": {
+      "value": "#1976d2",
+      "type": "color",
+      "description": "Primary brand color - ocean blue"
+    },
+    "primaryLight": {
+      "value": "#4791db",
+      "type": "color",
+      "description": "Light variant of primary color"
+    },
+    "primaryDark": {
+      "value": "#115293",
+      "type": "color",
+      "description": "Dark variant of primary color"
+    },
+    "secondary": {
+      "value": "#d32f2f",
+      "type": "color",
+      "description": "Secondary color - fire red"
+    },
+    "secondaryLight": {
+      "value": "#d32f2f",
+      "type": "color",
+      "description": "Light variant of secondary color"
+    },
+    "secondaryDark": {
+      "value": "#9a1e1e",
+      "type": "color",
+      "description": "Dark variant of secondary color"
+    },
+    "tertiary": {
+      "value": "#388e3c",
+      "type": "color",
+      "description": "Tertiary accent color - forest green"
+    },
+    "onPrimary": {
+      "value": "#FFFFFF",
+      "type": "color",
+      "description": "Text/icon color on primary background"
+    },
+    "onSecondary": {
+      "value": "#FFFFFF",
+      "type": "color",
+      "description": "Text/icon color on secondary background"
+    },
+    "onTertiary": {
+      "value": "#FFFFFF",
+      "type": "color",
+      "description": "Text/icon color on tertiary background"
+    },
+    "background": {
+      "value": "#FFFBFE",
+      "type": "color",
+      "description": "Main background color - neutral white"
+    },
+    "surface": {
+      "value": "{color.background}",
+      "type": "color",
+      "description": "Surface color, references background"
+    },
+    "onBackground": {
+      "value": "#1C1B1F",
+      "type": "color",
+      "description": "Text/icon color on background"
+    },
+    "onSurface": {
+      "value": "{color.onBackground}",
+      "type": "color",
+      "description": "Text/icon color on surface, references onBackground"
+    },
+    "primaryContainer": {
+      "value": "#E3F2FD",
+      "type": "color",
+      "description": "Container color for primary elements"
+    },
+    "secondaryContainer": {
+      "value": "#FFEBEE",
+      "type": "color",
+      "description": "Container color for secondary elements"
+    },
+    "onPrimaryContainer": {
+      "value": "#0d47a1",
+      "type": "color",
+      "description": "Text/icon color on primary container"
+    },
+    "onSecondaryContainer": {
+      "value": "#7f0000",
+      "type": "color",
+      "description": "Text/icon color on secondary container"
+    }
+  },
+  "$themes": {
+    "ocean": {
+      "name": "Ocean Fire",
+      "enumName": "OCEAN"
+    }
   }
 }

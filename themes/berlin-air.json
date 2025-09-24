@@ -1,24 +1,132 @@
 {
-  "name": "Berlin Air",
-  "enumName": "BERLIN_AIR",
-  "colors": {
-    "primary": "#4682B4",
-    "primaryLight": "#5B96BD",
-    "primaryDark": "#2F4F4F",
-    "secondary": "#708090",
-    "secondaryLight": "#7A8FA0",
-    "secondaryDark": "#556B2F",
-    "tertiary": "#B0C4DE",
-    "onPrimary": "#FFFFFF",
-    "onSecondary": "#FFFFFF",
-    "onTertiary": "#000000",
-    "background": "#F0F8FF",
-    "surface": "#F0F8FF",
-    "onBackground": "#2F4F4F",
-    "onSurface": "#2F4F4F",
-    "primaryContainer": "#E6F2FF",
-    "secondaryContainer": "#E6E6FA",
-    "onPrimaryContainer": "#1E3A5F",
-    "onSecondaryContainer": "#2F2F2F"
+  "color": {
+    "primary": {
+      "value": "#4682B4",
+      "type": "color",
+      "description": "Primary brand color - Berlin sky blue"
+    },
+    "primaryLight": {
+      "value": "{color.primary}",
+      "type": "color",
+      "description": "Light variant of primary color",
+      "$extensions": {
+        "studio.tokens": {
+          "modify": {
+            "type": "lighten",
+            "value": 0.15
+          }
+        }
+      }
+    },
+    "primaryDark": {
+      "value": "{color.primary}",
+      "type": "color",
+      "description": "Dark variant of primary color",
+      "$extensions": {
+        "studio.tokens": {
+          "modify": {
+            "type": "darken",
+            "value": 0.5
+          }
+        }
+      }
+    },
+    "secondary": {
+      "value": "#708090",
+      "type": "color",
+      "description": "Secondary color - slate gray"
+    },
+    "secondaryLight": {
+      "value": "{color.secondary}",
+      "type": "color",
+      "description": "Light variant of secondary color",
+      "$extensions": {
+        "studio.tokens": {
+          "modify": {
+            "type": "lighten",
+            "value": 0.1
+          }
+        }
+      }
+    },
+    "secondaryDark": {
+      "value": "{color.secondary}",
+      "type": "color",
+      "description": "Dark variant of secondary color",
+      "$extensions": {
+        "studio.tokens": {
+          "modify": {
+            "type": "darken",
+            "value": 0.25
+          }
+        }
+      }
+    },
+    "tertiary": {
+      "value": "#B0C4DE",
+      "type": "color",
+      "description": "Tertiary accent color - light steel blue"
+    },
+    "onPrimary": {
+      "value": "#FFFFFF",
+      "type": "color",
+      "description": "Text/icon color on primary background"
+    },
+    "onSecondary": {
+      "value": "#FFFFFF",
+      "type": "color",
+      "description": "Text/icon color on secondary background"
+    },
+    "onTertiary": {
+      "value": "#000000",
+      "type": "color",
+      "description": "Text/icon color on tertiary background"
+    },
+    "background": {
+      "value": "#F0F8FF",
+      "type": "color",
+      "description": "Main background color - alice blue"
+    },
+    "surface": {
+      "value": "{color.background}",
+      "type": "color",
+      "description": "Surface color, references background"
+    },
+    "onBackground": {
+      "value": "#2F4F4F",
+      "type": "color",
+      "description": "Text/icon color on background"
+    },
+    "onSurface": {
+      "value": "{color.onBackground}",
+      "type": "color",
+      "description": "Text/icon color on surface, references onBackground"
+    },
+    "primaryContainer": {
+      "value": "#E6F2FF",
+      "type": "color",
+      "description": "Container color for primary elements"
+    },
+    "secondaryContainer": {
+      "value": "#E6E6FA",
+      "type": "color",
+      "description": "Container color for secondary elements"
+    },
+    "onPrimaryContainer": {
+      "value": "#1E3A5F",
+      "type": "color",
+      "description": "Text/icon color on primary container"
+    },
+    "onSecondaryContainer": {
+      "value": "#2F2F2F",
+      "type": "color",
+      "description": "Text/icon color on secondary container"
+    }
+  },
+  "$themes": {
+    "berlin-air": {
+      "name": "Berlin Air",
+      "enumName": "BERLIN_AIR"
+    }
   }
 }

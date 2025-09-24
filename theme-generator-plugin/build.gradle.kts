@@ -16,6 +16,10 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("com.android.tools.build:gradle:8.7.2")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("io.mockk:mockk:1.13.8")
 }
 
 gradlePlugin {
@@ -38,6 +42,10 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
         jvmTarget = "11"
     }
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform()
 }
 
 publishing {

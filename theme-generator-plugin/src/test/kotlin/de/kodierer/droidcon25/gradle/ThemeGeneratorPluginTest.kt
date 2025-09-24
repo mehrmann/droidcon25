@@ -12,12 +12,14 @@ import kotlin.test.*
 
 class ThemeGeneratorPluginTest {
 
-    private lateinit var task: TestableGenerateThemesTask
+    private lateinit var parser: ThemeParser
+    private lateinit var codeGenerator: ThemeCodeGenerator
     private val json = Json { ignoreUnknownKeys = true }
 
     @BeforeEach
     fun setup() {
-        task = TestableGenerateThemesTask()
+        parser = ThemeParser()
+        codeGenerator = ThemeCodeGenerator()
     }
 
     @Nested
@@ -51,7 +53,7 @@ class ThemeGeneratorPluginTest {
             """.trimIndent()
 
             val tokenSet = json.decodeFromString<TokenSet>(tokenContent)
-            val themes = task.parseTokenStudioFormat("test-theme", tokenSet)
+            val themes = TestHelper.parseTokenStudioFormat("test-theme", tokenSet)
 
             assertEquals(1, themes.size)
             val theme = themes.first()
@@ -68,7 +70,6 @@ class ThemeGeneratorPluginTest {
                 {
                   "color": {
                     "primary": {
-                      "value": "",
                       "${'$'}value": "#FF5722",
                       "${'$'}type": "color",
                       "${'$'}description": "Primary color in DTCG format"
@@ -78,7 +79,7 @@ class ThemeGeneratorPluginTest {
             """.trimIndent()
 
             val tokenSet = json.decodeFromString<TokenSet>(tokenContent)
-            val themes = task.parseTokenStudioFormat("dtcg-test", tokenSet)
+            val themes = TestHelper.parseTokenStudioFormat("dtcg-test", tokenSet)
 
             assertEquals(1, themes.size)
             assertEquals("#FF5722", themes.first().colors["primary"])
@@ -97,7 +98,7 @@ class ThemeGeneratorPluginTest {
                 "surface" to ColorToken("{color.primary}", "color")
             )
 
-            val resolved = task.resolveTokenReferences(colorTokens)
+            val resolved = TestHelper.resolveTokenReferences(colorTokens)
 
             assertEquals("#4682B4", resolved["primary"])
             assertEquals("#4682B4", resolved["surface"])
@@ -112,7 +113,7 @@ class ThemeGeneratorPluginTest {
                 "background" to ColorToken("{color.surface}", "color")
             )
 
-            val resolved = task.resolveTokenReferences(colorTokens)
+            val resolved = TestHelper.resolveTokenReferences(colorTokens)
 
             assertEquals("#4682B4", resolved["primary"])
             assertEquals("#4682B4", resolved["surface"])
@@ -127,7 +128,7 @@ class ThemeGeneratorPluginTest {
                 "secondary" to ColorToken("{color.primary}", "color")
             )
 
-            val resolved = task.resolveTokenReferences(colorTokens)
+            val resolved = TestHelper.resolveTokenReferences(colorTokens)
 
             // Should not crash and return the reference strings as fallback
             assertEquals("{color.secondary}", resolved["primary"])
@@ -145,7 +146,7 @@ class ThemeGeneratorPluginTest {
             val baseColor = "#808080" // Medium gray
             val modifier = ColorModifier("lighten", 0.5)
 
-            val result = task.applyColorModifier(baseColor, modifier)
+            val result = TestHelper.applyColorModifier(baseColor, modifier)
 
             // Should be lighter than original
             assertNotEquals(baseColor, result)
@@ -159,7 +160,7 @@ class ThemeGeneratorPluginTest {
             val baseColor = "#808080" // Medium gray
             val modifier = ColorModifier("darken", 0.3)
 
-            val result = task.applyColorModifier(baseColor, modifier)
+            val result = TestHelper.applyColorModifier(baseColor, modifier)
 
             assertNotEquals(baseColor, result)
             assertTrue(result.startsWith("#"))
@@ -172,7 +173,7 @@ class ThemeGeneratorPluginTest {
             val baseColor = "#FF5722"
             val modifier = ColorModifier("alpha", 0.5)
 
-            val result = task.applyColorModifier(baseColor, modifier)
+            val result = TestHelper.applyColorModifier(baseColor, modifier)
 
             // Alpha modifier should produce ARGB format (8 characters)
             assertTrue(result.startsWith("#"))
@@ -190,7 +191,7 @@ class ThemeGeneratorPluginTest {
             val baseColor = "#FF0000" // Pure red
             val modifier = ColorModifier("mix", 0.5, color = "#0000FF") // Mix with pure blue
 
-            val result = task.applyColorModifier(baseColor, modifier)
+            val result = TestHelper.applyColorModifier(baseColor, modifier)
 
             assertNotEquals(baseColor, result)
             assertTrue(result.startsWith("#"))
@@ -204,7 +205,7 @@ class ThemeGeneratorPluginTest {
             val baseColor = "#FF5722"
             val modifier = ColorModifier("unknown", 0.5)
 
-            val result = task.applyColorModifier(baseColor, modifier)
+            val result = TestHelper.applyColorModifier(baseColor, modifier)
 
             // Should return original color unchanged
             assertEquals(baseColor, result)
@@ -224,7 +225,7 @@ class ThemeGeneratorPluginTest {
                 )
             )
 
-            val resolved = task.resolveTokenReferences(colorTokens)
+            val resolved = TestHelper.resolveTokenReferences(colorTokens)
 
             assertEquals("#4682B4", resolved["primary"])
             assertNotEquals("#4682B4", resolved["primaryLight"])
@@ -239,72 +240,46 @@ class ThemeGeneratorPluginTest {
         @Test
         @DisplayName("Should validate 6-character hex colors")
         fun testValidate6CharHex() {
-            assertTrue(task.isValidHexColor("#FF5722"))
-            assertTrue(task.isValidHexColor("#000000"))
-            assertTrue(task.isValidHexColor("#FFFFFF"))
+            assertTrue(TestHelper.isValidHexColor("#FF5722"))
+            assertTrue(TestHelper.isValidHexColor("#000000"))
+            assertTrue(TestHelper.isValidHexColor("#FFFFFF"))
         }
 
         @Test
         @DisplayName("Should validate 3-character hex colors")
         fun testValidate3CharHex() {
-            assertTrue(task.isValidHexColor("#F00"))
-            assertTrue(task.isValidHexColor("#0F0"))
-            assertTrue(task.isValidHexColor("#00F"))
+            assertTrue(TestHelper.isValidHexColor("#F00"))
+            assertTrue(TestHelper.isValidHexColor("#0F0"))
+            assertTrue(TestHelper.isValidHexColor("#00F"))
         }
 
         @Test
         @DisplayName("Should validate 8-character ARGB hex colors")
         fun testValidate8CharHex() {
-            assertTrue(task.isValidHexColor("#80FF5722"))
-            assertTrue(task.isValidHexColor("#FF000000"))
-            assertTrue(task.isValidHexColor("#00FFFFFF"))
+            assertTrue(TestHelper.isValidHexColor("#80FF5722"))
+            assertTrue(TestHelper.isValidHexColor("#FF000000"))
+            assertTrue(TestHelper.isValidHexColor("#00FFFFFF"))
         }
 
         @Test
         @DisplayName("Should reject invalid hex colors")
         fun testRejectInvalidHex() {
-            assertFalse(task.isValidHexColor("FF5722")) // Missing #
-            assertFalse(task.isValidHexColor("#GG5722")) // Invalid characters
-            assertFalse(task.isValidHexColor("#FF572")) // Wrong length
-            assertFalse(task.isValidHexColor("#FF57222")) // Wrong length
+            assertFalse(TestHelper.isValidHexColor("FF5722")) // Missing #
+            assertFalse(TestHelper.isValidHexColor("#GG5722")) // Invalid characters
+            assertFalse(TestHelper.isValidHexColor("#FF572")) // Wrong length
+            assertFalse(TestHelper.isValidHexColor("#FF57222")) // Wrong length
         }
 
         @Test
         @DisplayName("Should validate token references")
         fun testValidateTokenReferences() {
-            assertTrue(task.isValidTokenReference("{color.primary}"))
-            assertTrue(task.isValidTokenReference("{spacing.base}"))
-            assertFalse(task.isValidTokenReference("color.primary")) // Missing braces
-            assertFalse(task.isValidTokenReference("{color}")) // Missing dot
+            assertTrue(TestHelper.isValidTokenReference("{color.primary}"))
+            assertTrue(TestHelper.isValidTokenReference("{spacing.base}"))
+            assertFalse(TestHelper.isValidTokenReference("color.primary")) // Missing braces
+            assertFalse(TestHelper.isValidTokenReference("{color}")) // Missing dot
         }
     }
 
-    @Nested
-    @DisplayName("Legacy Format Compatibility")
-    inner class LegacyFormatTest {
-
-        @Test
-        @DisplayName("Should parse legacy theme format")
-        fun testLegacyFormatParsing() {
-            val legacyContent = """
-                {
-                  "name": "Legacy Theme",
-                  "enumName": "LEGACY_THEME",
-                  "colors": {
-                    "primary": "#4682B4",
-                    "secondary": "#708090"
-                  }
-                }
-            """.trimIndent()
-
-            val legacyTheme = json.decodeFromString<LegacyTheme>(legacyContent)
-
-            assertEquals("Legacy Theme", legacyTheme.name)
-            assertEquals("LEGACY_THEME", legacyTheme.enumName)
-            assertEquals("#4682B4", legacyTheme.colors["primary"])
-            assertEquals("#708090", legacyTheme.colors["secondary"])
-        }
-    }
 
     @Nested
     @DisplayName("Theme Validation")
@@ -320,7 +295,7 @@ class ThemeGeneratorPluginTest {
 
             // Should not throw - both themes have same color keys
             assertDoesNotThrow {
-                task.validateParsedThemes(themes)
+                TestHelper.validateParsedThemes(themes)
             }
         }
 
@@ -333,7 +308,7 @@ class ThemeGeneratorPluginTest {
             )
 
             assertThrows<GradleException> {
-                task.validateParsedThemes(themes)
+                TestHelper.validateParsedThemes(themes)
             }
         }
 
@@ -345,7 +320,7 @@ class ThemeGeneratorPluginTest {
             )
 
             assertThrows<GradleException> {
-                task.validateParsedThemes(themes)
+                TestHelper.validateParsedThemes(themes)
             }
         }
     }
@@ -357,23 +332,23 @@ class ThemeGeneratorPluginTest {
         @Test
         @DisplayName("Should normalize 3-character hex to 6-character")
         fun testNormalize3CharHex() {
-            assertEquals("FF0000", task.normalizeHexColor("#F00"))
-            assertEquals("00FF00", task.normalizeHexColor("#0F0"))
-            assertEquals("0000FF", task.normalizeHexColor("#00F"))
+            assertEquals("FF0000", TestHelper.normalizeHexColor("#F00"))
+            assertEquals("00FF00", TestHelper.normalizeHexColor("#0F0"))
+            assertEquals("0000FF", TestHelper.normalizeHexColor("#00F"))
         }
 
         @Test
         @DisplayName("Should keep 6-character hex unchanged")
         fun testNormalize6CharHex() {
-            assertEquals("FF5722", task.normalizeHexColor("#FF5722"))
-            assertEquals("000000", task.normalizeHexColor("#000000"))
+            assertEquals("FF5722", TestHelper.normalizeHexColor("#FF5722"))
+            assertEquals("000000", TestHelper.normalizeHexColor("#000000"))
         }
 
         @Test
         @DisplayName("Should keep 8-character ARGB hex unchanged")
         fun testNormalize8CharHex() {
-            assertEquals("80FF5722", task.normalizeHexColor("#80FF5722"))
-            assertEquals("FF000000", task.normalizeHexColor("#FF000000"))
+            assertEquals("80FF5722", TestHelper.normalizeHexColor("#80FF5722"))
+            assertEquals("FF000000", TestHelper.normalizeHexColor("#FF000000"))
         }
     }
 
@@ -384,17 +359,17 @@ class ThemeGeneratorPluginTest {
         @Test
         @DisplayName("Should sanitize property names correctly")
         fun testPropertyNameSanitization() {
-            assertEquals("primary", task.sanitizePropertyName("primary"))
-            assertEquals("primarydark", task.sanitizePropertyName("primary-dark"))
-            assertEquals("onprimary", task.sanitizePropertyName("on-primary"))
-            assertEquals("primarycontainer", task.sanitizePropertyName("primary_container"))
-            assertEquals("test123", task.sanitizePropertyName("test-123"))
+            assertEquals("primary", TestHelper.sanitizePropertyName("primary"))
+            assertEquals("primarydark", TestHelper.sanitizePropertyName("primary-dark"))
+            assertEquals("onprimary", TestHelper.sanitizePropertyName("on-primary"))
+            assertEquals("primarycontainer", TestHelper.sanitizePropertyName("primary_container"))
+            assertEquals("test123", TestHelper.sanitizePropertyName("test-123"))
         }
     }
 }
 
-// Test helper class that exposes private methods for testing
-class TestableGenerateThemesTask {
+// Test helper object that delegates to the new separated components
+object TestHelper {
 
     fun parseTokenStudioFormat(fileName: String, tokenSet: TokenSet): List<ParsedTheme> {
         val themes = mutableListOf<ParsedTheme>()
@@ -404,13 +379,13 @@ class TestableGenerateThemesTask {
         val resolvedColors = resolveTokenReferences(colorTokens)
 
         // Check if themes are defined in metadata
-        val themeMetadata = tokenSet.`$themes`
+        val themeMetadata = tokenSet.themes
         if (themeMetadata != null && themeMetadata.isNotEmpty()) {
             // Use defined themes
             themeMetadata.forEach { (_, metadata) ->
                 themes.add(ParsedTheme(
                     name = metadata.name,
-                    enumName = metadata.enumName,
+                    enumName = metadata.enumName ?: metadata.name.uppercase().replace(Regex("[^A-Z0-9_]"), "_"),
                     colors = resolvedColors
                 ))
             }

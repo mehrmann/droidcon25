@@ -24,18 +24,11 @@ class ThemeCodeGenerator {
         val colorNames = themes.first().colors.keys.sorted()
         val colorClassName = ClassName("androidx.compose.ui.graphics", "Color")
         val immutableClassName = ClassName("androidx.compose.runtime", "Immutable")
+        val uiThemeColorObjectClassName = ClassName("de.kodierer.droidcon25.ui.theme", "ThemeColorObject")
 
-        // Create ThemeColorObject interface
+        // Create ThemeColorObject interface that extends the UI interface
         val themeColorObjectInterface = TypeSpec.interfaceBuilder("ThemeColorObject")
-            .apply {
-                colorNames.forEach { colorName ->
-                    val propertyName = ColorUtils.sanitizePropertyName(colorName)
-                    addProperty(
-                        PropertySpec.builder(propertyName, colorClassName)
-                            .build()
-                    )
-                }
-            }
+            .addSuperinterface(uiThemeColorObjectClassName)
             .build()
 
         // Create color objects for each theme
@@ -82,6 +75,7 @@ class ThemeCodeGenerator {
     fun generateThemeFile(outputDir: File, themes: List<ParsedTheme>, packageName: String) {
         val themeDataClassName = ClassName("de.kodierer.droidcon25.ui.theme", "ThemeData")
         val appColorsClassName = ClassName("de.kodierer.droidcon25.ui.theme", "AppColors")
+        val themeColorObjectClassName = ClassName("de.kodierer.droidcon25.ui.theme", "ThemeColorObject")
 
         // Build AppTheme enum
         val appThemeEnum = TypeSpec.enumBuilder("AppTheme")
@@ -115,7 +109,9 @@ class ThemeCodeGenerator {
                         add("listOf(\n")
                         indent()
                         themes.forEachIndexed { index, theme ->
-                            val objectName = theme.enumName.lowercase().replaceFirstChar { it.uppercase() }
+                            val objectName = theme.enumName.lowercase()
+                                .split("_")
+                                .joinToString("_") { part -> part.replaceFirstChar { it.uppercaseChar() } }
                             add("%T(\n", themeDataClassName)
                             indent()
                             add("theme = %T.%L,\n", ClassName(packageName, "AppTheme"), theme.enumName)
@@ -156,11 +152,33 @@ class ThemeCodeGenerator {
         // Build the complete file
         val fileSpec = FileSpec.builder(packageName, "GeneratedThemes")
             .addFileComment("Auto-generated file - do not modify")
+            .addImport("de.kodierer.droidcon25.ui.theme", "ThemeColorObject")
             .addType(appThemeEnum)
             .addType(allThemesObject)
             .build()
 
         fileSpec.writeTo(Path(outputDir.path))
+
+        // Post-process the generated file to fix type parameters
+        fixGeneratedThemesFile(outputDir, packageName)
+    }
+
+    /**
+     * Post-processes the generated themes file to fix type parameters that KotlinPoet has trouble with.
+     */
+    private fun fixGeneratedThemesFile(outputDir: File, packageName: String) {
+        val packagePath = packageName.replace('.', '/')
+        val themesFile = File(outputDir, "$packagePath/GeneratedThemes.kt")
+
+        if (themesFile.exists()) {
+            val content = themesFile.readText()
+            val fixedContent = content
+                .replace("public val themes: List = listOf(", "public val themes: List<ThemeData> = listOf(")
+                .replace("public val allAppThemes: List = themes.map { it.theme }", "public val allAppThemes: List<AppTheme> = themes.map { it.theme }")
+                .replace("public val themeMap: Map = themes.associateBy { it.theme }", "public val themeMap: Map<AppTheme, ThemeData> = themes.associateBy { it.theme }")
+
+            themesFile.writeText(fixedContent)
+        }
     }
 
     /**
